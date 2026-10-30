@@ -3,6 +3,7 @@ import Hero from '@/components/Hero';
 import MissionSection from '@/components/MissionSection';
 import ProcessSection from '@/components/ProcessSection';
 import ScenariosSection from '@/components/Scenariossection';
+import RegisterSection from '@/components/RegisterSection';
 import ContactSection from '@/components/ContactSection';
 
 export default function HomePage() {
@@ -13,6 +14,7 @@ export default function HomePage() {
       <MissionSection />
       <ProcessSection />
       <ScenariosSection />
+      <RegisterSection />
       <ContactSection />
     </>
   );

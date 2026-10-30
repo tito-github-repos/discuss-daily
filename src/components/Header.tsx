@@ -18,6 +18,7 @@ import CloseIcon from '@mui/icons-material/Close';
 
 const navItems = [
   { label: 'Home', id: 'home' },
+  { label: 'Register', id: 'register' },
   { label: 'Contact', id: 'contact' },
 ];
 
