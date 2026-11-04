@@ -79,7 +79,7 @@ export default function ScenariosSection() {
               color: "var(--black)",
             }}
           >
-            Our Scenarios
+            Life Scenarios
           </Typography>
         </Box>
 

@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum MembershipStatus {
+  PENDING   // registered, not paid yet
+  ACTIVE
+  EXPIRED
+}
+
+enum PaymentStatus {
+  CREATED
+  PAID
+  FAILED
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  name        String
+  email       String      @unique
+  countryCode String      @default("+91")
+  mobile      String      @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  membership  Membership?
+  payments    Payment[]
+  otps        Otp[]
+}
+
+model Otp {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int       @default(0)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Membership {
+  id         Int              @id @default(autoincrement())
+  userId     Int              @unique
+  status     MembershipStatus @default(PENDING)
+  startDate  DateTime?
+  expiryDate DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id                Int           @id @default(autoincrement())
+  userId            Int
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String?       @unique
+  razorpaySignature String?
+  amount            Int           // in paise: 36500 = ₹365
+  status            PaymentStatus @default(CREATED)
+  createdAt         DateTime      @default(now())
+  paidAt            DateTime?
+
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Consultant {
+  id        Int      @id @default(autoincrement())
+  name      String
+  field     String
+  phone     String
+  email     String?
+  feeNote   String?  // e.g. "Fee is decided by the consultant"
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}

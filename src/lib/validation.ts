@@ -1,86 +1,45 @@
-import { getCountries, parsePhoneNumberFromString } from 'libphonenumber-js/mobile';
-import type { CountryCode } from 'libphonenumber-js/mobile';
+import * as yup from 'yup';
 
-export type RegisterField = 'name' | 'email' | 'phone';
-export type RegisterErrors = Partial<Record<RegisterField, string>>;
-
-export type RegisterInput = {
-  name: string;
-  email: string;
-  phone: string; // national number, without country code
-  country: string; // ISO code, e.g. "IN", "US", "GB"
-};
-
-// Letters (any language), spaces, and . ' - inside words. 2–60 characters in total.
+// Letters (any language), spaces, and . ' - inside words
 const NAME_RE = /^\p{L}[\p{L}\p{M}'’.-]*(?: \p{L}[\p{L}\p{M}'’.-]*)*$/u;
 
-// No consecutive dots, local part starts/ends with a letter or digit, real domain + TLD
 const EMAIL_RE =
   /^(?!.*\.\.)[A-Za-z0-9](?:[A-Za-z0-9._%+-]{0,62}[A-Za-z0-9])?@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,24}$/;
 
-const COUNTRY_CODES = new Set<string>(getCountries());
+export const registerSchema = yup.object({
+  name: yup
+    .string()
+    .transform((v) => (typeof v === 'string' ? v.trim().replace(/\s+/g, ' ') : v))
+    .required('Please enter your name.')
+    .min(2, 'Name must be at least 2 characters.')
+    .max(60, 'Name must be at most 60 characters.')
+    .matches(NAME_RE, 'Use letters only (spaces, . - and apostrophes are allowed).'),
 
-export function isValidCountry(code: string): code is CountryCode {
-  return COUNTRY_CODES.has(code);
-}
+  email: yup
+    .string()
+    .transform((v) => (typeof v === 'string' ? v.trim().toLowerCase() : v))
+    .required('Please enter your email.')
+    .max(254, 'Email is too long.')
+    .matches(EMAIL_RE, 'Enter a valid email address.'),
 
-export function cleanPhone(raw: string): string {
-  return raw.replace(/[\s\-().]/g, '');
-}
+  phone: yup
+    .string()
+    .required('Please enter your mobile number.')
+    .matches(/^\d{10}$/, 'Mobile number must be exactly 10 digits.')
+    .test(
+      'not-same-digit',
+      'Enter a valid mobile number.',
+      (v) => !v || !/^(\d)\1{9}$/.test(v) // blocks 0000000000, 9999999999, etc.
+    ),
 
-export function validateField(field: RegisterField, value: string, country = 'IN'): string {
-  const v = value.trim().replace(/\s+/g, ' ');
+  // Honeypot: must stay empty
+  website: yup.string().default(''),
+});
 
-  switch (field) {
-    case 'name':
-      if (!v) return 'Please enter your name.';
-      if (v.length < 2 || v.length > 60) return 'Name must be 2 to 60 characters.';
-      if (!NAME_RE.test(v)) return 'Use letters only (spaces, . - and apostrophes are allowed).';
-      return '';
+export type RegisterInput = yup.InferType<typeof registerSchema>;
 
-    case 'email':
-      if (!v) return 'Please enter your email.';
-      if (v.length > 254 || !EMAIL_RE.test(v)) return 'Enter a valid email address.';
-      return '';
+export const loginEmailSchema = yup.object({
+  email: registerSchema.fields.email,
+});
 
-    case 'phone': {
-      if (!v) return 'Please enter your phone number.';
-      const digits = cleanPhone(v);
-      if (!/^\d+$/.test(digits)) return 'Phone number can contain digits only.';
-      if (!isValidCountry(country)) return 'Please select a valid country.';
-      const parsed = parsePhoneNumberFromString(digits, country);
-      if (!parsed || !parsed.isValid())
-        return 'Enter a valid mobile number for the selected country, without the country code.';
-      return '';
-    }
-  }
-}
-
-export function validateRegistration(input: RegisterInput) {
-  const country = input.country ?? '';
-  const errors: RegisterErrors = {};
-
-  (['name', 'email', 'phone'] as RegisterField[]).forEach((f) => {
-    const msg = validateField(f, input[f] ?? '', country);
-    if (msg) errors[f] = msg;
-  });
-
-  const valid = Object.keys(errors).length === 0;
-
-  // Store phone in international E.164 format, e.g. +919360353287
-  let phone = cleanPhone(input.phone ?? '');
-  if (valid && isValidCountry(country)) {
-    phone = parsePhoneNumberFromString(phone, country)?.number ?? phone;
-  }
-
-  return {
-    valid,
-    errors,
-    data: {
-      name: (input.name ?? '').trim().replace(/\s+/g, ' '),
-      email: (input.email ?? '').trim().toLowerCase(),
-      phone,
-      country,
-    } as RegisterInput,
-  };
-}
+export type LoginEmailInput = yup.InferType<typeof loginEmailSchema>;

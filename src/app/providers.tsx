@@ -2,6 +2,8 @@
 
 import { ReactNode } from 'react';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { AuthProvider } from '@/components/AuthProvider';
+import LoginDialog from '@/components/LoginDialog';
 
 const theme = createTheme({
   palette: {
@@ -21,7 +23,10 @@ export default function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {children}
+      <AuthProvider>
+        {children}
+        <LoginDialog />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

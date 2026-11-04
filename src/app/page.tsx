@@ -5,6 +5,7 @@ import ProcessSection from '@/components/ProcessSection';
 import ScenariosSection from '@/components/Scenariossection';
 import RegisterSection from '@/components/RegisterSection';
 import ContactSection from '@/components/ContactSection';
+import MembershipPlanSection from '@/components/MembershipPlanSection';
 
 export default function HomePage() {
   return (
@@ -14,6 +15,7 @@ export default function HomePage() {
       <MissionSection />
       <ProcessSection />
       <ScenariosSection />
+      <MembershipPlanSection />
       <RegisterSection />
       <ContactSection />
     </>

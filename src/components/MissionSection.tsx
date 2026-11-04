@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Container, Stack, Typography } from '@mui/material';
-import GroupsIcon from '@mui/icons-material/Groups';
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 import type { ElementType } from 'react';
 
 type Item = {
@@ -13,14 +13,14 @@ type Item = {
 
 const items: Item[] = [
   {
-    title: 'Our Mission',
+    title: 'Our Vision',
     text: 'Discuss Daily wants to increase happiness quotient of everyone.',
-    iconSrc: '/icons/target-icon.svg',
+    Icon: LightbulbOutlinedIcon,
   },
   {
-    title: 'How it is being achieved?',
+    title: 'Our Mission',
     text: 'We connect you to right people at the right time.',
-    Icon: GroupsIcon,
+    iconSrc: '/icons/target-icon.svg',
   },
 ];
 
