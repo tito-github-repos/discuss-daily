@@ -6,6 +6,14 @@ const NAME_RE = /^\p{L}[\p{L}\p{M}'’.-]*(?: \p{L}[\p{L}\p{M}'’.-]*)*$/u;
 const EMAIL_RE =
   /^(?!.*\.\.)[A-Za-z0-9](?:[A-Za-z0-9._%+-]{0,62}[A-Za-z0-9])?@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,24}$/;
 
+// One shared email field, used by both schemas, so the type stays a plain string
+const emailField = yup
+  .string()
+  .transform((v) => (typeof v === 'string' ? v.trim().toLowerCase() : v))
+  .required('Please enter your email.')
+  .max(254, 'Email is too long.')
+  .matches(EMAIL_RE, 'Enter a valid email address.');
+
 export const registerSchema = yup.object({
   name: yup
     .string()
@@ -15,12 +23,7 @@ export const registerSchema = yup.object({
     .max(60, 'Name must be at most 60 characters.')
     .matches(NAME_RE, 'Use letters only (spaces, . - and apostrophes are allowed).'),
 
-  email: yup
-    .string()
-    .transform((v) => (typeof v === 'string' ? v.trim().toLowerCase() : v))
-    .required('Please enter your email.')
-    .max(254, 'Email is too long.')
-    .matches(EMAIL_RE, 'Enter a valid email address.'),
+  email: emailField,
 
   phone: yup
     .string()
@@ -39,7 +42,7 @@ export const registerSchema = yup.object({
 export type RegisterInput = yup.InferType<typeof registerSchema>;
 
 export const loginEmailSchema = yup.object({
-  email: registerSchema.fields.email,
+  email: emailField,
 });
 
 export type LoginEmailInput = yup.InferType<typeof loginEmailSchema>;
