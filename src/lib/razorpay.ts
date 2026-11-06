@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 
-export const MEMBERSHIP_AMOUNT_PAISE = 100; // ₹365
+export const MEMBERSHIP_AMOUNT_PAISE = 36500; // ₹365
 
 // Creates an order using Razorpay's REST API (no SDK needed)
 export async function createRazorpayOrder(params: {

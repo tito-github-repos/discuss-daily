@@ -323,7 +323,7 @@ export default function RegisterForm() {
             {submitting ? <CircularProgress size={24} color="inherit" /> : 'Register'}
           </Button>
 
-          <Stack
+          {/* <Stack
             direction="row"
             spacing={0.75}
             sx={{ justifyContent: 'center', alignItems: 'center', color: 'text.secondary' }}
@@ -332,7 +332,7 @@ export default function RegisterForm() {
             <Typography sx={{ fontSize: '0.8rem' }}>
               Your details are safe and used only to contact you.
             </Typography>
-          </Stack>
+          </Stack> */}
         </Stack>
       </Box>
 
