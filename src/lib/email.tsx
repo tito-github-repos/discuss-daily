@@ -1,6 +1,7 @@
 import OtpEmail from "@/templates/otpEmail";
 import RegisteredConfirmation from "@/templates/registeredConfirmation";
 import PaymentConfirmation from "@/templates/paymentConfirmation";
+import AppointmentRequest from "@/templates/appointmentRequiest";
 import type { ReactElement } from "react";
 import { resend } from "./resend";
 
@@ -24,16 +25,29 @@ interface PaymentData {
   validTill: string;
 }
 
+interface AppointmentRequestData {
+  consultantName: string;
+  consultantEmail: string | null;
+  scenarioLabel: string;
+  problem: string | null;
+  memberName: string;
+  memberEmail: string;
+  memberMobile: string;
+  sentAt: Date;
+}
+
 // Sends one email. Throws if it was not accepted (the Resend SDK returns the
 // error instead of throwing, so it is checked here).
 async function deliver({
   to,
   subject,
   react,
+  replyTo,
 }: {
   to: string;
   subject: string;
   react: ReactElement;
+  replyTo?: string;
 }) {
   if (!resend) {
     if (process.env.NODE_ENV === "production") {
@@ -51,7 +65,7 @@ async function deliver({
     to,
     subject,
     react,
-    replyTo: process.env.REPLY_TO_EMAIL || undefined,
+    replyTo: replyTo ?? (process.env.REPLY_TO_EMAIL || undefined),
   });
 
   if (error) {
@@ -86,5 +100,63 @@ export async function sendPaymentConfirmation(data: PaymentData) {
     to: email,
     subject: "Discuss Daily Payment Confirmation",
     react: <PaymentConfirmation {...rest} />,
+  });
+}
+
+// 4. Consultation request: one email to the consultant and one to the admin.
+// Each is sent on its own, so one failing never stops the other.
+export async function sendAppointmentRequestEmails(data: AppointmentRequestData) {
+  const consultantEmail = data.consultantEmail?.trim() || null;
+  const adminEmail = process.env.ADMIN_EMAIL?.trim() || null;
+
+  const sentOn = data.sentAt.toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Asia/Kolkata",
+  });
+
+  const common = {
+    consultantName: data.consultantName,
+    consultantHasEmail: consultantEmail !== null,
+    scenarioLabel: data.scenarioLabel,
+    problem: data.problem,
+    memberName: data.memberName,
+    memberEmail: data.memberEmail,
+    memberMobile: data.memberMobile,
+    sentOn,
+  };
+
+  const jobs: Promise<void>[] = [];
+
+  if (consultantEmail) {
+    jobs.push(
+      deliver({
+        to: consultantEmail,
+        subject: `New consultation request from ${data.memberName}`,
+        react: <AppointmentRequest audience="consultant" {...common} />,
+        // The consultant can reply straight to the member
+        replyTo: data.memberEmail,
+      })
+    );
+  }
+
+  if (adminEmail) {
+    jobs.push(
+      deliver({
+        to: adminEmail,
+        subject: `New consultation request: ${data.memberName} to ${data.consultantName}`,
+        react: <AppointmentRequest audience="admin" {...common} />,
+      })
+    );
+  } else {
+    console.error("ADMIN_EMAIL is not set: the admin did not get this request");
+  }
+
+  const results = await Promise.allSettled(jobs);
+  results.forEach((r) => {
+    if (r.status === "rejected") console.error("Appointment email failed:", r.reason);
   });
 }

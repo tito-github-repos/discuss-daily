@@ -19,6 +19,14 @@ enum PaymentStatus {
   FAILED
 }
 
+// The four life scenarios on the site
+enum Scenario {
+  STUDENT    // If you are a student
+  FINANCE    // If you have a financial goal/problem
+  WORKPLACE  // If you have a problem in your working premises
+  FAMILY     // If you have a problem with your family members
+}
+
 model User {
   id          Int         @id @default(autoincrement())
   name        String
@@ -28,9 +36,10 @@ model User {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  membership  Membership?
-  payments    Payment[]
-  otps        Otp[]
+  membership   Membership?
+  payments     Payment[]
+  otps         Otp[]
+  appointments Appointment[]
 }
 
 model Otp {
@@ -76,13 +85,34 @@ model Payment {
 }
 
 model Consultant {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
   field     String
+  scenario  Scenario? // each consultant belongs to one scenario; empty = not listed in the request form yet
   phone     String
   email     String?
-  feeNote   String?  // e.g. "Fee is decided by the consultant"
-  active    Boolean  @default(true)
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
+  feeNote   String?   // e.g. "Fee is decided by the consultant"
+  active    Boolean   @default(true)
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  appointments Appointment[]
+
+  @@index([scenario, active])
+}
+
+// A member's request to a consultant. The time is agreed between them, so none is saved here.
+model Appointment {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  consultantId Int
+  scenario     Scenario   // the scenario chosen when the request was sent
+  problem      String?    @db.Text // optional
+  createdAt    DateTime   @default(now())
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  consultant   Consultant @relation(fields: [consultantId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@index([consultantId])
 }

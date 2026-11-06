@@ -18,11 +18,11 @@ const points: { title: string; text: string; Icon: ElementType }[] = [
     text: "Every problem has options. We help you find the best one.",
     Icon: LightbulbOutlinedIcon,
   },
-  {
-    title: "Your details stay private",
-    text: "We only use them to get in touch about Discuss Daily.",
-    Icon: VerifiedUserOutlinedIcon,
-  },
+  // {
+  //   title: "Your details stay private",
+  //   text: "We only use them to get in touch about Discuss Daily.",
+  //   Icon: VerifiedUserOutlinedIcon,
+  // },
 ];
 
 export default function RegisterSection() {
@@ -45,7 +45,7 @@ export default function RegisterSection() {
           display: "grid",
           gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
           gap: { xs: 5, md: 8 },
-          alignItems: "center",
+          // alignItems: "center",
         }}
       >
         {/* Left: message */}
@@ -172,7 +172,7 @@ export default function RegisterSection() {
                 fontSize: "0.95rem",
               }}
             >
-              Just three details, that’s all.
+              {/* Just three details, that’s all. */}
             </Typography>
 
             <RegisterForm />

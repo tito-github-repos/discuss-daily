@@ -20,14 +20,25 @@ export default async function MembershipPage() {
 
   const state = getMembershipState(user.membership);
 
-  // Consultant details are loaded only for active members
+  // Only the names for the request form, and only for active members
   const consultants =
     state.status === 'ACTIVE'
       ? await prisma.consultant.findMany({
-          where: { active: true },
+          where: { active: true, scenario: { not: null } },
           orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+          select: { id: true, name: true, field: true, scenario: true },
         })
       : [];
+
+  // The member's own request history (visible even after the membership expires)
+  const appointments = await prisma.appointment.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+    include: {
+      consultant: { select: { name: true, field: true, phone: true, email: true } },
+    },
+  });
 
   return (
     <>
@@ -40,13 +51,18 @@ export default async function MembershipPage() {
         daysLeft={state.daysLeft}
         canPay={state.canPay}
         payLabel={state.payLabel}
-        consultants={consultants.map((c) => ({
-          id: c.id,
-          name: c.name,
-          field: c.field,
-          phone: c.phone,
-          email: c.email,
-          feeNote: c.feeNote,
+        consultants={consultants}
+        appointments={appointments.map((a) => ({
+          id: a.id,
+          scenario: a.scenario,
+          problem: a.problem,
+          createdAt: a.createdAt.toISOString(),
+          consultant: {
+            name: a.consultant.name,
+            field: a.consultant.field,
+            phone: a.consultant.phone,
+            email: a.consultant.email,
+          },
         }))}
       />
     </>
