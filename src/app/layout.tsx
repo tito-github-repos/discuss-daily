@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import Providers from "./providers";
 import "./globals.css";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
+import DisableCopy from "@/components/DisableCopy";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={poppins.variable}>
       <body>
+         <DisableCopy />
         <AppRouterCacheProvider>
           <Providers>{children}</Providers>
         </AppRouterCacheProvider>
