@@ -12,7 +12,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Discuss Daily",
+  title: "Discuss Daily - Connects Consultants",
   description:
     "Discuss Daily connects you to the right people at the right time, so every problem finds a solution.",
 };
